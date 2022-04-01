@@ -28,6 +28,13 @@ _io = [
         Subsignal("bom",      Pins("N1 M1 N2")),
         IOStandard("LVCMOS25")
     ),
+
+    # I2C.
+    ("i2c", 0,
+        Subsignal("scl", Pins("C10"), Misc("OPENDRAIN=ON")),
+        Subsignal("sda", Pins("B9"), Misc("OPENDRAIN=ON")),
+        IOStandard("LVCMOS33"),
+    ),
 ]
 
 # Platform -----------------------------------------------------------------------------------------

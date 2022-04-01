@@ -21,6 +21,7 @@ from litex.soc.interconnect.csr import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
 from litex.soc.cores.led import LedChaser
+from litex.soc.cores.bitbang import I2CMaster
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -67,8 +68,13 @@ class BaseSoC(SoCCore):
         # CRG --------------------------------------------------------------------------------------
         self.submodules.crg = _CRG(platform, sys_clk_freq)
 
-        # Info ---------------------------------------------------------------------------------
+        # Info -------------------------------------------------------------------------------------
         self.submodules.info = BoardInfo(platform.request("revision"))
+
+        # I2C Bus ----------------------------------------------------------------------------------
+        # - Temperature Sensor (LM72   @ 0x48).
+        # - Eeprom             (M24128 @ 0x50) / Not populated.
+        self.submodules.i2c = I2CMaster(platform.request("i2c"))
 
         # Leds -------------------------------------------------------------------------------------
         if with_led_chaser:
