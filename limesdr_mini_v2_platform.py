@@ -15,12 +15,12 @@ _io = [
     ("clk40", 0, Pins("A9"), IOStandard("LVCMOS33")),
 
     # Leds.
-    ("led_g", 0, Pins("R16"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")),
-    ("led_g", 1, Pins("M18"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")), # Shared with FPGA_GPIO4.
-    ("led_g", 2, Pins("T17"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")), # Shared with FPGA_GPIO6.
-    ("led_r", 0, Pins("V17"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")),
-    ("led_r", 1, Pins("R18"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")), # Shared with FPGA_GPIO5.
-    ("led_r", 2, Pins("R17"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")), # Shared with FPGA_GPIO7.
+    ("led_g_n", 0, Pins("R16"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")),
+    ("led_g_n", 1, Pins("M18"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")), # Shared with FPGA_GPIO4.
+    ("led_g_n", 2, Pins("T17"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")), # Shared with FPGA_GPIO6.
+    ("led_r_n", 0, Pins("V17"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")),
+    ("led_r_n", 1, Pins("R18"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")), # Shared with FPGA_GPIO5.
+    ("led_r_n", 2, Pins("R17"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")), # Shared with FPGA_GPIO7.
 
     # Revision.
     ("revision", 0,

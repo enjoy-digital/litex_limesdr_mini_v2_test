@@ -78,9 +78,11 @@ class BaseSoC(SoCCore):
 
         # Leds -------------------------------------------------------------------------------------
         if with_led_chaser:
-            leds_r = platform.request_all("led_r")
-            leds_g = platform.request_all("led_g")
-            self.submodules.leds = LedChaser(Cat(leds_r, leds_g), sys_clk_freq)
+            leds_g = Signal(4)
+            leds_r = Signal(4)
+            self.comb += platform.request_all("led_g_n").eq(~leds_g)
+            self.comb += platform.request_all("led_r_n").eq(~leds_r)
+            self.submodules.leds = LedChaser(Cat(leds_g, leds_r), sys_clk_freq)
 
 # Build --------------------------------------------------------------------------------------------
 
