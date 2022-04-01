@@ -20,8 +20,11 @@ from litex.soc.cores.clock import *
 from litex.soc.interconnect.csr import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
+from litex.soc.interconnect import stream
+
 from litex.soc.cores.led import LedChaser
 from litex.soc.cores.bitbang import I2CMaster
+from litex.soc.cores.usb_fifo import FT245PHYSynchronous
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -29,6 +32,7 @@ class _CRG(Module):
     def __init__(self, platform, sys_clk_freq):
         self.rst = Signal()
         self.clock_domains.cd_sys = ClockDomain()
+        self.clock_domains.cd_usb = ClockDomain()
 
         # # #
 
@@ -40,6 +44,9 @@ class _CRG(Module):
         self.comb += pll.reset.eq(self.rst)
         pll.register_clkin(clk40, 40e6)
         pll.create_clkout(self.cd_sys, sys_clk_freq)
+
+        # USB.
+        self.comb += self.cd_usb.clk.eq(platform.request("usb_fifo_clk"))
 
 # BoardInfo ----------------------------------------------------------------------------------------
 
@@ -58,7 +65,10 @@ class BoardInfo(Module, AutoCSR):
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
-    def __init__(self, sys_clk_freq=int(80e6), toolchain="trellis", with_led_chaser=True, **kwargs):
+    def __init__(self, sys_clk_freq=int(80e6), toolchain="trellis",
+        with_usb_fifo   = True, with_usb_fifo_loopback=True,
+        with_led_chaser = True,
+        **kwargs):
         platform = limesdr_mini_v2.Platform(toolchain=toolchain)
 
         # SoCCore -----------------------------------------_----------------------------------------
@@ -75,6 +85,23 @@ class BaseSoC(SoCCore):
         # - Temperature Sensor (LM72   @ 0x48).
         # - Eeprom             (M24128 @ 0x50) / Not populated.
         self.submodules.i2c = I2CMaster(platform.request("i2c"))
+
+        # USB-FIFO ---------------------------------------------------------------------------------
+        if with_usb_fifo:
+            self.submodules.usb_phy = usb_phy = FT245PHYSynchronous(
+                pads       = platform.request("usb_fifo"),
+                clk_freq   = sys_clk_freq,
+                fifo_depth = 8,
+                read_time  = 128,
+                write_time = 128,
+            )
+            if with_usb_fifo_loopback:
+                usb_loopback = stream.SyncFIFO([("data", 32)], 2048, buffered=True)
+                self.submodules += usb_loopback
+                self.comb += [
+                    usb_phy.source.connect(usb_loopback.sink),
+                    usb_loopback.source.connect(usb_phy.sink)
+                ]
 
         # Leds -------------------------------------------------------------------------------------
         if with_led_chaser:

@@ -64,7 +64,7 @@ _io = [
     ("lms75_os", 0, Pins("K2"), IOStandard("LVCMOS25")),
 
     # USB-FIFO.
-    ("usb_fifo_clock", 0, Pins("A9"), IOStandard("LVCMOS33")),
+    ("usb_fifo_clk", 0, Pins("D17"), IOStandard("LVCMOS33")),
     ("usb_fifo", 0,
         Subsignal("rst_n", Pins("M17")),
         Subsignal("data", Pins(
