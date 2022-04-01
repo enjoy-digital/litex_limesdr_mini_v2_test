@@ -21,6 +21,13 @@ _io = [
     ("led_r", 0, Pins("V17"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")),
     ("led_r", 1, Pins("R18"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")), # Shared with FPGA_GPIO5.
     ("led_r", 2, Pins("R17"), IOStandard("LVCMOS25"), Misc("OPENDRAIN=ON")), # Shared with FPGA_GPIO7.
+
+    # Revision.
+    ("revision", 0,
+        Subsignal("hardware", Pins("D4 M2 N4 J3")),
+        Subsignal("bom",      Pins("N1 M1 N2")),
+        IOStandard("LVCMOS25")
+    ),
 ]
 
 # Platform -----------------------------------------------------------------------------------------

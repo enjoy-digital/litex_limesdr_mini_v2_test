@@ -17,6 +17,7 @@ import limesdr_mini_v2_platform as limesdr_mini_v2
 from litex.build.lattice.trellis import trellis_args, trellis_argdict
 
 from litex.soc.cores.clock import *
+from litex.soc.interconnect.csr import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
 from litex.soc.cores.led import LedChaser
@@ -39,6 +40,20 @@ class _CRG(Module):
         pll.register_clkin(clk40, 40e6)
         pll.create_clkout(self.cd_sys, sys_clk_freq)
 
+# BoardInfo ----------------------------------------------------------------------------------------
+
+class BoardInfo(Module, AutoCSR):
+    def __init__(self, revision_pads):
+        self.revision = CSRStorage(fields=[
+            CSRField("hardware", size=4, description="Hardware Revision."),
+            CSRField("bom",      size=4, description="Bill of Material Revision."),
+        ])
+
+        # # #
+
+        self.comb += self.revision.fields.hardware.eq(revision_pads.hardware)
+        self.comb += self.revision.fields.bom     .eq(revision_pads.bom)
+
 # BaseSoC ------------------------------------------------------------------------------------------
 
 class BaseSoC(SoCCore):
@@ -51,6 +66,9 @@ class BaseSoC(SoCCore):
 
         # CRG --------------------------------------------------------------------------------------
         self.submodules.crg = _CRG(platform, sys_clk_freq)
+
+        # Info ---------------------------------------------------------------------------------
+        self.submodules.info = BoardInfo(platform.request("revision"))
 
         # Leds -------------------------------------------------------------------------------------
         if with_led_chaser:
