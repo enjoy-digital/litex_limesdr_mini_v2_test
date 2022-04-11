@@ -25,8 +25,7 @@ from litex.soc.interconnect import stream
 
 from litex.soc.cores.led import LedChaser
 from litex.soc.cores.bitbang import I2CMaster
-
-from usb_fifo import FT245PHYSynchronous
+from litex.soc.cores.usb_fifo import FT245PHYSynchronous
 
 from litescope import LiteScopeAnalyzer
 
@@ -113,7 +112,7 @@ class BaseSoC(SoCCore):
             else:
                 self.comb += usb_phy.source.ready.eq(1) # Accept incoming stream to validate Host -> FPGA.
 
-            analyzer_probes = usb_phy.get_debug_probes()
+            analyzer_probes = usb_phy.get_litescope_probes()
             self.submodules.analyzer = LiteScopeAnalyzer(analyzer_probes,
                 depth        = 512,
                 clock_domain = "usb",
