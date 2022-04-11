@@ -7,8 +7,9 @@
 # SPDX-License-Identifier: BSD-2-Clause
 
 # Build/Use:
-# ./limesdr_mini_v2.py --build --load
-# litex_term jtag --jtag-config=openocd_limesdr_mini_v2.cfg
+# ./limesdr_mini_v2.py --csr-csv=csr.csv --build --load
+# litex_server --jtag --jtag-config=openocd_limesdr_mini_v2.cfg
+# litex_term crossover
 
 from migen import *
 
@@ -24,7 +25,10 @@ from litex.soc.interconnect import stream
 
 from litex.soc.cores.led import LedChaser
 from litex.soc.cores.bitbang import I2CMaster
-from litex.soc.cores.usb_fifo import FT245PHYSynchronous
+
+from usb_fifo import FT245PHYSynchronous
+
+from litescope import LiteScopeAnalyzer
 
 # CRG ----------------------------------------------------------------------------------------------
 
@@ -71,9 +75,12 @@ class BaseSoC(SoCCore):
         **kwargs):
         platform = limesdr_mini_v2.Platform(toolchain=toolchain)
 
-        # SoCCore -----------------------------------------_----------------------------------------
-        kwargs["uart_name"] = "jtag_uart"
+        # SoCCore ----------------------------------------------------------------------------------
+        kwargs["uart_name"] = "crossover"
         SoCCore.__init__(self, platform, sys_clk_freq, ident="LiteX SoC on LimeSDR-Mini-V2", **kwargs)
+
+        # JTAGBone ---------------------------------------------------------------------------------
+        self.add_jtagbone()
 
         # CRG --------------------------------------------------------------------------------------
         self.submodules.crg = _CRG(platform, sys_clk_freq)
@@ -88,8 +95,9 @@ class BaseSoC(SoCCore):
 
         # USB-FIFO ---------------------------------------------------------------------------------
         if with_usb_fifo:
+            usb_pads = platform.request("usb_fifo")
             self.submodules.usb_phy = usb_phy = FT245PHYSynchronous(
-                pads       = platform.request("usb_fifo"),
+                pads       = usb_pads,
                 clk_freq   = sys_clk_freq,
                 fifo_depth = 8,
                 read_time  = 128,
@@ -100,8 +108,23 @@ class BaseSoC(SoCCore):
                 self.submodules += usb_loopback
                 self.comb += [
                     usb_phy.source.connect(usb_loopback.sink),
-                    usb_loopback.source.connect(usb_phy.sink)
+                    usb_loopback.source.connect(usb_phy.sink),
                 ]
+            else:
+                self.comb += usb_phy.source.ready.eq(1) # Accept incoming stream to validate Host -> FPGA.
+
+            analyzer_probes = usb_phy.get_debug_probes()
+            self.submodules.analyzer = LiteScopeAnalyzer(analyzer_probes,
+                depth        = 512,
+                clock_domain = "usb",
+                samplerate   = sys_clk_freq,
+                csr_csv      = "analyzer.csv"
+            )
+
+        # Debug -------------------------------------------------------------------------------
+        egpio_pads = platform.request("egpio")
+        self.comb += egpio_pads[0].eq(ClockSignal("sys"))
+        self.comb += egpio_pads[1].eq(ClockSignal("usb"))
 
         # Leds -------------------------------------------------------------------------------------
         if with_led_chaser:
